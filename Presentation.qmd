@@ -1,0 +1,9 @@
+
+## Import data
+
+```{r}
+owid <- read.csv("https://raw.githubusercontent.com/JackBenadon/Stat-380-group-project/main/owid-co2-data.csv")
+goma <- read.csv("https://raw.githubusercontent.com/JackBenadon/Stat-380-group-project/main/GOMA.csv")
+
+```
+

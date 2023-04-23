@@ -63,7 +63,7 @@ zzlowid2005_2021
 ggplot(goma,aes(x=DATE,y=GOMA))+geom_bar(stat="identity",fill="darkblue")+theme_bw()
 zzgoma2005_2022 <- ggplot(zGOMAYearly2005_2022,aes(x=year,y=GOMA))+geom_bar(stat="identity",fill="darkblue")+theme_bw()
 zzgoma2005_2022
-zzlgoma2005_2022 <- ggplot(zGOMAYearly2005_2022,aes(x=year,y=GOMA))+geom_line(color="red")+theme_bw()+ylab()
+zzlgoma2005_2022 <- ggplot(zGOMAYearly2005_2022,aes(x=year,y=GOMA))+geom_line(color="red")+theme_bw()
 zzlgoma2005_2022
 ```
 

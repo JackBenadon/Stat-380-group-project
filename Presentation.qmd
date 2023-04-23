@@ -23,7 +23,7 @@ tran <- read.csv("https://raw.githubusercontent.com/JackBenadon/Stat-380-group-p
 
 ```{r}
 zowidyearly1800_2021 <- owid%>%
-  select(c(country,year,co2))%>%
+  select(c(country,year,co2,gdp,population))%>%
   filter(country=="United States")
 zowideyearly2005_2022 <- zowidyearly1800_2021%>%
   filter(year>=2005)
@@ -54,6 +54,8 @@ ztransyearly1990_2015 <- ztransyearly1990_2015[,-c(2,23)]
 ggplot(zowidyearly1800_2021,aes(x=year,y=co2))+geom_bar(stat="identity",fill="darkblue")+theme_bw()
 zzowid2005_2021<- ggplot(zowideyearly2005_2022,aes(x=year,y=co2))+geom_bar(stat="identity",fill="darkblue")+theme_bw()
 zzowid2005_2021
+zzowid2005_2021gdppercapita<- ggplot(zowideyearly2005_2022,aes(x=year,y=gdp/population))+geom_line(stat="identity",fill="darkblue")+theme_bw()+ylab("GDP per capita")
+zzowid2005_2021gdppercapita
 zzlowid2005_2021<- ggplot(zowideyearly2005_2022,aes(x=year,y=co2))+geom_line(color="darkblue")+theme_bw()
 zzlowid2005_2021
 ```
@@ -62,7 +64,7 @@ zzlowid2005_2021
 ggplot(goma,aes(x=DATE,y=GOMA))+geom_bar(stat="identity",fill="darkblue")+theme_bw()
 zzgoma2005_2022 <- ggplot(zGOMAYearly2005_2022,aes(x=year,y=GOMA))+geom_bar(stat="identity",fill="darkblue")+theme_bw()
 zzgoma2005_2022
-zzlgoma2005_2022 <- ggplot(zGOMAYearly2005_2022,aes(x=year,y=GOMA))+geom_line(color="red")+theme_bw()
+zzlgoma2005_2022 <- ggplot(zGOMAYearly2005_2022,aes(x=year,y=GOMA))+geom_line(color="red")+theme_bw()+ylab()
 zzlgoma2005_2022
 ```
 

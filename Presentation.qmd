@@ -149,3 +149,7 @@ dataframe <- list(ztransyearly2005_2015, zeosyearly2005_2022, zGOMAYearly2005_20
 data <- dataframe %>% reduce(full_join, by='year')
 ```
 
+```{r}
+write.csv(data, "/Users/alex/Desktop/SP2023/STAT380/Stat-380-group-project/data.csv", row.names=FALSE)
+```
+

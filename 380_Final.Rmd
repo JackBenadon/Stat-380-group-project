@@ -137,12 +137,31 @@ zztransyearly2005_2015 <- ggplot(zztransyearly2005_2015,aes(x=Year,value,fill=ty
 
 
 ```{R}
+#loading the data
+
 data = read.csv("https://raw.githubusercontent.com/JackBenadon/Stat-380-group-project/main/data.csv", header = T)
 
-data = data %>% 
+#removing NA values
+data <- data %>% 
     na.omit() 
- 
 
+#removing the (R) in the commuter.rail column
+data$Commuter.rail[11] <- 372
+
+#removing the commas in Highway..total because its special 
+data$Highway..total <- gsub(",", "", data$Highway..total)
+
+# making the all the columns into numeric variables
+data$Commuter.rail <- as.numeric(sub(",","",data$Commuter.rail))
+data$Air.carrier..domestic..all.services <- as.numeric(sub(",","",data$Air.carrier..domestic..all.services))
+data$Highway..total <- as.numeric(data$Highway..total)
+
+#making sure the transport data is only one column
+data$transport <- data$Air.carrier..domestic..all.services + data$Commuter.rail + data$Highway..total
+
+
+ 
+#initializing NN
 NNet <- nn_module(
   initialize = function(input_size, hidden_size, output_size) {
     self$input_size <- input_size

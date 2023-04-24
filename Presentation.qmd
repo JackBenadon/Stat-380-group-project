@@ -64,7 +64,7 @@ zzlowid2005_2021
 ggplot(goma,aes(x=DATE,y=GOMA))+geom_bar(stat="identity",fill="darkblue")+theme_bw()
 zzgoma2005_2022 <- ggplot(zGOMAYearly2005_2022,aes(x=year,y=GOMA))+geom_bar(stat="identity",fill="darkblue")+theme_bw()
 zzgoma2005_2022
-zzlgoma2005_2022 <- ggplot(zGOMAYearly2005_2022,aes(x=year,y=GOMA))+geom_line(color="red")+theme_bw()+ylab()
+zzlgoma2005_2022 <- ggplot(zGOMAYearly2005_2022,aes(x=year,y=GOMA))+geom_line(color="red")+theme_bw()
 zzlgoma2005_2022
 ```
 
@@ -132,6 +132,7 @@ zztransrail <- zztransyearly2005_2015N %>%
   filter(type=="Commuter rail")
 ```
 
+<<<<<<< HEAD
 
 
 ```{r}
@@ -172,4 +173,34 @@ merged
 ```
 
 
+=======
+```{r}
+typeof(ztransyearly1990_2015)
+```
+
+```{r}
+zeosyearly2005_2022 <- zeosyearly2005_2022%>%
+  rename("year"=Month)
+```
+
+
+```{r}
+colClean <- function(x){ colnames(x) <- gsub("\\.\\.+", ".", colnames(x)); x } 
+ztransyearly1990_2015 <- colClean(ztransyearly1990_2015)
+ztransyearly2005_2015 <- ztransyearly1990_2015%>%
+  select(c(Year,`Air carrier, domestic, all services`,`Commuter rail`,`Highway, total`))%>%
+  filter(Year>=2005)%>%
+  rename("year"=Year)
+ztransyearly2005_2015$year <- as.numeric(ztransyearly2005_2015$year)
+zeosyearly2005_2022$year <- as.numeric(zeosyearly2005_2022$year)
+zGOMAYearly2005_2022$year <- as.numeric(zGOMAYearly2005_2022$year)
+zowideyearly2005_2022$year <- as.numeric(zowideyearly2005_2022$year)
+dataframe <- list(ztransyearly2005_2015, zeosyearly2005_2022, zGOMAYearly2005_2022,zowideyearly2005_2022)
+data <- dataframe %>% reduce(full_join, by='year')
+```
+
+```{r}
+write.csv(data, "/Users/alex/Desktop/SP2023/STAT380/Stat-380-group-project/data.csv", row.names=FALSE)
+```
+>>>>>>> 294c3a5b9dbfed66b632368ea3cb49ede1501255
 

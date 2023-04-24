@@ -1,0 +1,69 @@
+
+```{r}
+packages <- c(
+  "dplyr", 
+  "readr", 
+  "tidyr", 
+  "purrr", 
+  "broom",
+  "magrittr",
+  "corrplot",
+  "caret",
+  "rpart",
+  "rpart.plot",
+  "e1071",
+  "torch", 
+  "luz",
+  "ramify"
+)
+
+# renv::install(packages)
+sapply(packages, require, character.only=T)
+```
+
+```{r}
+data = read.csv("https://raw.githubusercontent.com/JackBenadon/Stat-380-group-project/main/data.csv", header = T)
+
+data = data %>% 
+    na.omit() 
+ 
+
+NNet <- nn_module(
+  initialize = function(input_size, hidden_size, output_size) {
+    self$input_size <- input_size
+    self$hidden_size <- hidden_size
+    self$output_size <- output_size
+    
+    self$f1 <- nn_linear(input_size + hidden_size, hidden_size)
+    self$f2 <- nn_linear(hidden_size, output_size)
+    self$activation <- nn_tanh()
+  },
+  
+ forward = function(x) {
+    hidden <- self$f1(x) %>% self$activation()
+    output <- self$f2(hidden)
+    list(output, hidden)
+  }
+)
+
+nnet_fit <- NNet %>% 
+  setup(
+    loss = nn_mse_loss(),
+    optimizer = optim_adam, 
+    metrics = list(luz_metric_rmse())
+  ) %>%
+  set_hparams(input_size = 5, 
+              hidden_size = 32, 
+              output_size = 1) %>% 
+  set_opt_hparams(lr = 0.005) %>% 
+  fit(
+    data = list(
+      x = list(model.matrix(co2 ~ Air.carrier..domestic..all.services + as.numeric(Commuter.rail) + as.numeric(Highway..total) + ElectricityEndUseTotal + GOMA + gdp  , data = data)),
+      y = list(data %>% select(co2) %>% as.matrix)
+    ),
+    
+    dataloader_options = list(shuffle = TRUE, num_workers = 0),
+    verbose = FALSE # Change to TRUE while tuning. But, set to FALSE before submitting
+  )
+  
+```

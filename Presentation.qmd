@@ -123,3 +123,29 @@ zztransyearly2005_2015 <- z2transyearly1990_2015%>%
 zztransyearly2005_2015 <- ggplot(zztransyearly2005_2015,aes(x=Year,value,fill=type))+geom_bar(stat="identity")+theme_bw()+theme(legend.key.size = unit(1, 'cm'), legend.key.height = unit(0.1, 'cm'), legend.key.width = unit(0.1, 'cm'),legend.title = element_text(size=6), legend.text = element_text(size=4))
 
 ```
+
+```{r}
+typeof(ztransyearly1990_2015)
+```
+
+```{r}
+zeosyearly2005_2022 <- zeosyearly2005_2022%>%
+  rename("year"=Month)
+```
+
+
+```{r}
+colClean <- function(x){ colnames(x) <- gsub("\\.\\.+", ".", colnames(x)); x } 
+ztransyearly1990_2015 <- colClean(ztransyearly1990_2015)
+ztransyearly2005_2015 <- ztransyearly1990_2015%>%
+  select(c(Year,`Air carrier, domestic, all services`,`Commuter rail`,`Highway, total`))%>%
+  filter(Year>=2005)%>%
+  rename("year"=Year)
+ztransyearly2005_2015$year <- as.numeric(ztransyearly2005_2015$year)
+zeosyearly2005_2022$year <- as.numeric(zeosyearly2005_2022$year)
+zGOMAYearly2005_2022$year <- as.numeric(zGOMAYearly2005_2022$year)
+zowideyearly2005_2022$year <- as.numeric(zowideyearly2005_2022$year)
+dataframe <- list(ztransyearly2005_2015, zeosyearly2005_2022, zGOMAYearly2005_2022,zowideyearly2005_2022)
+data <- dataframe %>% reduce(full_join, by='year')
+```
+

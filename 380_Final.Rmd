@@ -1,0 +1,184 @@
+---
+title: "380_Project"
+author: "Abdallah Al Rahbi"
+date: "2023-04-23"
+output: pdf_document
+---
+
+```{r}
+packages <- c(
+  "dplyr", 
+  "readr", 
+  "tidyr", 
+  "purrr", 
+  "broom",
+  "magrittr",
+  "corrplot",
+  "caret",
+  "rpart",
+  "rpart.plot",
+  "e1071",
+  "torch", 
+  "luz",
+  "ramify"
+)
+
+# renv::install(packages)
+sapply(packages, require, character.only=T)
+```
+
+
+
+```{r}
+owid <- read.csv("https://raw.githubusercontent.com/JackBenadon/Stat-380-group-project/main/owid-co2-data.csv")
+goma <- read.csv("https://raw.githubusercontent.com/JackBenadon/Stat-380-group-project/main/GOMA.csv")
+eo <- read.csv("https://raw.githubusercontent.com/JackBenadon/Stat-380-group-project/main/Table_7.1_Electricity_Overview.csv")
+tran <- read.csv("https://raw.githubusercontent.com/JackBenadon/Stat-380-group-project/main/Trasportation%20data.csv")
+```
+
+```{r}
+zowidyearly1800_2021 <- owid%>%
+  select(c(country,year,co2,gdp,population))%>%
+  filter(country=="United States")
+zowideyearly2005_2022 <- zowidyearly1800_2021%>%
+  filter(year>=2005)
+goma$DATE <- as.Date(goma$DATE)
+goma$year <- as.numeric(format(goma$DATE, "%Y"))
+zGOMAYearly2005_2022 <- goma%>%
+  filter(str_detect(DATE, "01-01"))
+zeosmonthly1973_2022 <- eo[10:610,]
+zeosmonthly1973_2022 <- zeosmonthly1973_2022%>%
+  row_to_names(row_number = 1)
+zeosmonthly1973_2022 <- zeosmonthly1973_2022[-c(1),]
+zeosyearly1973_2022 <- zeosmonthly1973_2022%>%
+  filter(str_detect(Month, "January"))
+zeosyearly2005_2022 <- zeosyearly1973_2022
+zeosyearly2005_2022$Month <- gsub("January","",zeosyearly2005_2022$Month)
+zeosyearly2005_2022 <- zeosyearly2005_2022%>%
+  filter(Month>=2005)
+ztransyearly1990_2015 <- tran%>%
+  select(!c(X,X.1,X.2,X.3,X.4,X.5))
+ztransyearly1990_2015 <- ztransyearly1990_2015 [1:28,]
+ztransyearly1990_2015 <- ztransyearly1990_2015 %>%
+  transpose()%>%
+  row_to_names(row_number = 1)
+ztransyearly1990_2015 <- ztransyearly1990_2015[,-c(2,23)]
+```
+
+```{r}
+ggplot(zowidyearly1800_2021,aes(x=year,y=co2))+geom_bar(stat="identity",fill="darkblue")+theme_bw()
+zzowid2005_2021<- ggplot(zowideyearly2005_2022,aes(x=year,y=co2))+geom_bar(stat="identity",fill="darkblue")+theme_bw()
+zzowid2005_2021
+zzowid2005_2021gdppercapita<- ggplot(zowideyearly2005_2022,aes(x=year,y=gdp/population))+geom_line(stat="identity",fill="darkblue")+theme_bw()+ylab("GDP per capita")
+zzowid2005_2021gdppercapita
+zzlowid2005_2021<- ggplot(zowideyearly2005_2022,aes(x=year,y=co2))+geom_line(color="darkblue")+theme_bw()
+zzlowid2005_2021
+```
+
+```{r}
+ggplot(goma,aes(x=DATE,y=GOMA))+geom_bar(stat="identity",fill="darkblue")+theme_bw()
+zzgoma2005_2022 <- ggplot(zGOMAYearly2005_2022,aes(x=year,y=GOMA))+geom_bar(stat="identity",fill="darkblue")+theme_bw()
+zzgoma2005_2022
+zzlgoma2005_2022 <- ggplot(zGOMAYearly2005_2022,aes(x=year,y=GOMA))+geom_line(color="red")+theme_bw()
+zzlgoma2005_2022
+```
+
+```{r}
+colnames(zeosmonthly1973_2022)[5] <- "ElectricityNetGenerationTotal"
+ggplot(zeosmonthly1973_2022, aes(x=Month,y = ElectricityNetGenerationTotal,group=1)) + geom_line()+ theme_bw()
+colnames(zeosyearly1973_2022)[5] <- "ElectricityNetGenerationTotal"
+ggplot(zeosyearly1973_2022, aes(x=Month,y = ElectricityNetGenerationTotal,group=1)) + geom_line()+ theme_bw()
+colnames(zeosyearly2005_2022)[5] <- "ElectricityNetGenerationTotal"
+zzleosyearly2005_2022ec <- ggplot(zeosyearly2005_2022, aes(x=Month,y = ElectricityNetGenerationTotal,group=1)) + geom_line(color="red")+ theme_bw()
+zzleosyearly2005_2022ec
+colnames(zeosyearly2005_2022)[12] <- "ElectricityEndUseTotal"
+zzleosyearly2005_2022eu <- ggplot(zeosyearly2005_2022, aes(x=Month,y = ElectricityEndUseTotal,group=1)) + geom_line(color="green")+ theme_bw()
+zzleosyearly2005_2022eu
+```
+
+```{r}
+colnames(ztransyearly1990_2015)[1] <- "Year"
+z2transyearly1990_2015 <- ztransyearly1990_2015 %>%
+  pivot_longer(!Year, names_to = "type", values_to = "value")%>%
+  filter(type %in% c("Air carrier, domestic, all services","Highway, total","Commuter rail")) %>%
+  mutate(Year = as.numeric(Year), value)
+```
+
+```{R}
+zztransyearly2005_2015 <- z2transyearly1990_2015%>%
+  filter(Year>=2005)%>%
+  mutate(value = gsub(",","",value))%>%
+  mutate(value=gsub("\\(R\\) ","",value))%>%
+  mutate(value=as.numeric(value))
+ggplot(zztransyearly2005_2015, aes(x=Year, y=value, color=type,group=type))+geom_line()+theme_bw() + ylab("Annual Vehicle Miles (Millions)")
+zztransyearly2005_2015 <- zztransyearly2005_2015%>%
+  group_by(type)%>%
+  mutate(value=((value - min(value))/(max(value)-min(value))))
+ggplot(zztransyearly2005_2015, aes(x=Year,y=value,color=type,group=type))+geom_line()+theme_bw()+ylab("Normalized vehicle miles")
+zztranshighway <- zztransyearly2005_2015 %>%
+  filter(type=="Highway, total")
+zztransair <- zztransyearly2005_2015 %>%
+  filter(type=="Air carrier, domestic, all services")
+zztransrail <- zztransyearly2005_2015 %>%
+  filter(type=="Commuter rail")
+#ggplot(zztranshighway, aes(x=Year, y=value, group=1))+geom_line(color="blue")+theme_bw()
+#ggplot(zztransair, aes(x=Year, y=value, group=1))+geom_line(color="red")+theme_bw()
+#ggplot(zztransrail, aes(x=Year, y=value, group=1))+geom_line(color="green")+theme_bw()
+```
+
+
+```{R}
+ggplot(z2transyearly1990_2015,aes(x=Year,y=value,fill=type))+geom_bar(stat="identity")+theme_bw()+theme(legend.key.size = unit(1, 'cm'), legend.key.height = unit(0.1, 'cm'), legend.key.width = unit(0.1, 'cm'),legend.title = element_text(size=6), legend.text = element_text(size=4))
+zztransyearly2005_2015 <- z2transyearly1990_2015%>%
+  filter(Year>=2005)
+zztransyearly2005_2015 <- ggplot(zztransyearly2005_2015,aes(x=Year,value,fill=type))+geom_bar(stat="identity")+theme_bw()+theme(legend.key.size = unit(1, 'cm'), legend.key.height = unit(0.1, 'cm'), legend.key.width = unit(0.1, 'cm'),legend.title = element_text(size=6), legend.text = element_text(size=4))
+```
+
+
+
+```{R}
+data = read.csv("https://raw.githubusercontent.com/JackBenadon/Stat-380-group-project/main/data.csv", header = T)
+
+data = data %>% 
+    na.omit() 
+ 
+
+NNet <- nn_module(
+  initialize = function(input_size, hidden_size, output_size) {
+    self$input_size <- input_size
+    self$hidden_size <- hidden_size
+    self$output_size <- output_size
+    
+    self$f1 <- nn_linear(input_size + hidden_size, hidden_size)
+    self$f2 <- nn_linear(hidden_size, output_size)
+    self$activation <- nn_tanh()
+  },
+  
+ forward = function(x) {
+    hidden <- self$f1(x) %>% self$activation()
+    output <- self$f2(hidden)
+    list(output, hidden)
+  }
+)
+
+nnet_fit <- NNet %>% 
+  setup(
+    loss = nn_mse_loss(),
+    optimizer = optim_adam, 
+    metrics = list(luz_metric_rmse())
+  ) %>%
+  set_hparams(input_size = 5, 
+              hidden_size = 32, 
+              output_size = 1) %>% 
+  set_opt_hparams(lr = 0.005) %>% 
+  fit(
+    data = list(
+      x = list(model.matrix(co2 ~ Air.carrier..domestic..all.services + as.numeric(Commuter.rail) + as.numeric(Highway..total) + ElectricityEndUseTotal + GOMA + gdp  , data = data)),
+      y = list(data %>% select(co2) %>% as.matrix)
+    ),
+    
+    dataloader_options = list(shuffle = TRUE, num_workers = 0),
+    verbose = FALSE # Change to TRUE while tuning. But, set to FALSE before submitting
+  )
+  
+```

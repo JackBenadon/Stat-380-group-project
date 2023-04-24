@@ -137,12 +137,24 @@ zztransyearly2005_2015 <- ggplot(zztransyearly2005_2015,aes(x=Year,value,fill=ty
 
 
 ```{R}
+
+#loading the data
 data = read.csv("https://raw.githubusercontent.com/JackBenadon/Stat-380-group-project/main/data.csv", header = T)
-
-data = data %>% 
+#removing NA values
+data <- data %>% 
     na.omit() 
+#removing the (R) in the commuter.rail column
+data$Commuter.rail[11] <- 372
+#removing the commas in Highway..total because its special 
+data$Highway..total <- gsub(",", "", data$Highway..total)
+# making the all the columns into numeric variables
+data$Commuter.rail <- as.numeric(sub(",","",data$Commuter.rail))
+data$Air.carrier..domestic..all.services <- as.numeric(sub(",","",data$Air.carrier..domestic..all.services))
+data$Highway..total <- as.numeric(data$Highway..total)
+#making sure the transport data is only one column
+data$transport <- data$Air.carrier..domestic..all.services + data$Commuter.rail + data$Highway..total
  
-
+#initializing NN
 NNet <- nn_module(
   initialize = function(input_size, hidden_size, output_size) {
     self$input_size <- input_size
@@ -167,18 +179,40 @@ nnet_fit <- NNet %>%
     optimizer = optim_adam, 
     metrics = list(luz_metric_rmse())
   ) %>%
-  set_hparams(input_size = 5, 
+  set_hparams(input_size = 4, 
               hidden_size = 32, 
               output_size = 1) %>% 
   set_opt_hparams(lr = 0.005) %>% 
   fit(
     data = list(
-      x = list(model.matrix(co2 ~ Air.carrier..domestic..all.services + as.numeric(Commuter.rail) + as.numeric(Highway..total) + ElectricityEndUseTotal + GOMA + gdp  , data = data)),
-      y = list(data %>% select(co2) %>% as.matrix)
+      x = model.matrix(co2 ~ transport + ElectricityEndUseTotal + GOMA + gdp  , data = data),
+      y = data %>% select(co2) %>% as.matrix
     ),
     
     dataloader_options = list(shuffle = TRUE, num_workers = 0),
     verbose = FALSE # Change to TRUE while tuning. But, set to FALSE before submitting
   )
+  
+
+# Get the weights of the linear layers
+f1_weights <- nnet_fit$model$f1$weight
+f2_weights <- nnet_fit$model$f2$weight
+    
+# Compute the magnitude of the weights and sum across input dimensions
+f1_importance <- colSums(abs(f1_weights))
+f2_importance <- abs(f2_weights)
+
+# Combine the weights and their indices into a data frame
+importance_df <- data.frame(
+  variable = c(names(nnet_fit$model$f1$bias), "hidden", "output"),
+  importance = c(f1_importance, f2_importance)
+)
+
+# Sort the data frame in descending order of importance
+importance_df <- importance_df[order(-importance_df$importance), ]
+
+# Print the top 5 most important variables
+head(importance_df, 5)
+  
   
 ```

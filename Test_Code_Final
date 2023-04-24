@@ -22,6 +22,12 @@ sapply(packages, require, character.only=T)
 ```
 
 ```{r}
+data = read.csv("https://raw.githubusercontent.com/JackBenadon/Stat-380-group-project/main/data.csv", header = T)
+
+data = data %>% 
+    na.omit() 
+ 
+
 NNet <- nn_module(
   initialize = function(input_size, hidden_size, output_size) {
     self$input_size <- input_size
@@ -52,24 +58,12 @@ nnet_fit <- NNet %>%
   set_opt_hparams(lr = 0.005) %>% 
   fit(
     data = list(
-      x = list(model.matrix(median_house_value ~ .-households, data = df_train)),
-      y = list(df_train %>% select(median_house_value) %>% as.matrix)
+      x = list(model.matrix(co2 ~ Air.carrier..domestic..all.services + as.numeric(Commuter.rail) + as.numeric(Highway..total) + ElectricityEndUseTotal + GOMA + gdp  , data = data)),
+      y = list(data %>% select(co2) %>% as.matrix)
     ),
-    valid_data = list(
-      x = list(model.matrix(median_house_value ~ .-households, data = df_test)),
-      y = list(df_test %>% select(median_house_value) %>% as.matrix)
-    ),
+    
     dataloader_options = list(shuffle = TRUE, num_workers = 0),
     verbose = FALSE # Change to TRUE while tuning. But, set to FALSE before submitting
   )
-```
-
-Identify the important features:
-```{r}
-# assume "nnet_fit" is the trained neural network model
-params <- nnet_fit %>% get_parameters()
-weights_input_to_hidden <- params$f1$weight %>% as.array()
-
-# find the index of the input feature with the highest weight for each hidden neuron
-most_important_features <- apply(weights_input_to_hidden, 1, which.max)
+  
 ```

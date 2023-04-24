@@ -110,16 +110,66 @@ zztransair <- zztransyearly2005_2015 %>%
 zztransrail <- zztransyearly2005_2015 %>%
   filter(type=="Commuter rail")
 
+
+
 #ggplot(zztranshighway, aes(x=Year, y=value, group=1))+geom_line(color="blue")+theme_bw()
 #ggplot(zztransair, aes(x=Year, y=value, group=1))+geom_line(color="red")+theme_bw()
 #ggplot(zztransrail, aes(x=Year, y=value, group=1))+geom_line(color="green")+theme_bw()
 ```
 
+```{r}
+zztransyearly2005_2015N <- z2transyearly1990_2015%>%
+  filter(Year>=2005)%>%
+  mutate(value = gsub(",","",value))%>%
+  mutate(value=gsub("\\(R\\) ","",value))%>%
+  mutate(value=as.numeric(value))
 
-```{R}
-ggplot(z2transyearly1990_2015,aes(x=Year,y=value,fill=type))+geom_bar(stat="identity")+theme_bw()+theme(legend.key.size = unit(1, 'cm'), legend.key.height = unit(0.1, 'cm'), legend.key.width = unit(0.1, 'cm'),legend.title = element_text(size=6), legend.text = element_text(size=4))
-zztransyearly2005_2015 <- z2transyearly1990_2015%>%
-  filter(Year>=2005)
-zztransyearly2005_2015 <- ggplot(zztransyearly2005_2015,aes(x=Year,value,fill=type))+geom_bar(stat="identity")+theme_bw()+theme(legend.key.size = unit(1, 'cm'), legend.key.height = unit(0.1, 'cm'), legend.key.width = unit(0.1, 'cm'),legend.title = element_text(size=6), legend.text = element_text(size=4))
-
+zztranshighway <- zztransyearly2005_2015N %>%
+  filter(type=="Highway, total")
+zztransair <- zztransyearly2005_2015N %>%
+  filter(type=="Air carrier, domestic, all services")
+zztransrail <- zztransyearly2005_2015N %>%
+  filter(type=="Commuter rail")
 ```
+
+
+
+```{r}
+zeossmall <- zeosyearly2005_2022 %>%
+  select(Month, ElectricityEndUseTotal)
+colnames(zeossmall)[1] <- "Year"
+zeossmall$Year <- zeossmall$Year %>% as.numeric()
+
+zowidesmall <- zowideyearly2005_2022 %>%
+  select(year, co2, gdp)
+colnames(zowidesmall)[1] <- "Year"
+zowidesmall$Year <- zowidesmall$Year %>% as.numeric()
+
+zgomasmall <- zGOMAYearly2005_2022 %>%
+  select(year, GOMA)
+colnames(zgomasmall)[1] <- "Year"
+zgomasmall$Year <- zgomasmall$Year %>% as.numeric()
+
+zztransair <- zztransair %>%
+  select(Year, value)
+colnames(zztransair)[2] <- "AirVal"
+zztransair$Year <- zztransair$Year %>% as.numeric()
+zztranshighway <- zztranshighway %>%
+  select(Year, value)
+colnames(zztranshighway)[2] <- "HighwayVal"
+zztransair$Year <- zztransair$Year %>% as.numeric()
+zztransrail <- zztransrail %>%
+  select(Year, value)
+colnames(zztransrail)[2] <- "RailVal"
+zztransrail$Year <- zztransrail$Year %>% as.numeric()
+
+merged <- full_join(zeossmall, zowidesmall, by="Year") %>%
+  full_join(zgomasmall, by="Year")%>%
+  full_join(zztransair, by="Year")%>%
+  full_join(zztranshighway,by="Year")%>%
+  full_join(zztransrail, by="Year")
+merged
+```
+
+
+

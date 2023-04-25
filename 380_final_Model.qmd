@@ -1,0 +1,125 @@
+---
+title: "380_final_modelling"
+author: "Abdallah Al Rahbi"
+format: pdf
+---
+
+
+```{r}
+packages <- c(
+  "dplyr", 
+  "readr", 
+  "tidyr", 
+  "purrr", 
+  "broom",
+  "magrittr",
+  "corrplot",
+  "caret",
+  "rpart",
+  "rpart.plot",
+  "e1071",
+  "torch", 
+  "luz",
+  "ramify",
+  "keras",
+  "tensorflow",
+  "reticulate"
+)
+
+#renv::install(packages)
+sapply(packages, require, character.only=T)
+```
+
+```{r}
+
+
+#loading the data
+data = read.csv("https://raw.githubusercontent.com/JackBenadon/Stat-380-group-project/main/data.csv", header = T)
+#removing NA values
+data <- data %>% 
+    na.omit() 
+#removing the (R) in the commuter.rail column
+data$Commuter.rail[11] <- 372
+#removing the commas in Highway..total because its special 
+data$Highway..total <- gsub(",", "", data$Highway..total)
+# making the all the columns into numeric variables
+data$Commuter.rail <- as.numeric(sub(",","",data$Commuter.rail))
+data$Air.carrier..domestic..all.services <- as.numeric(sub(",","",data$Air.carrier..domestic..all.services))
+data$Highway..total <- as.numeric(data$Highway..total)
+#making sure the transport data is only one column
+data$transport <- data$Air.carrier..domestic..all.services + data$Commuter.rail + data$Highway..total
+ 
+
+#selecting variables
+data = data %>%
+  select(year,co2,transport, ElectricityEndUseTotal, GOMA, gdp)
+
+mean <- apply(data, 2, mean)
+std <- apply(data, 2, sd)
+std<-case_when(std==0 ~ 1,
+         std !=0 ~ std)
+
+data <- scale(data, center = mean, scale = std)
+
+xdata <- data %>%
+  select(transport, ElectricityEndUseTotal, GOMA, gdp)
+
+ydata <- data %>%
+  select(co2)
+
+```
+
+```{r}
+R = data %>%
+cor()
+corrplot(R, type="upper", order="hclust")
+
+
+```
+
+```{r}
+
+model = keras_model_sequential() %>% 
+   layer_dense(units=64, activation="relu", input_shape=4) %>% 
+   layer_dense(units=32, activation = "relu") %>% 
+   layer_dense(units=1, activation="linear")
+ 
+model %>% compile(
+   loss = "mse",
+   optimizer =  "adam", 
+   metrics = list("mean_absolute_error")
+ )
+ 
+model %>% summary()
+
+x = as.matrix(data[1:11,3:6])
+
+y = as.matrix(data[1:11,2])
+
+model %>% fit(x, y, epochs = 100,verbose = 0)
+ 
+
+
+
+y_pred = model %>% predict(x)
+x_axes = seq(1:length(y_pred))
+plot(x_axes, y, type="l", col="red")
+lines(x_axes, y_pred, col="blue")
+legend("topleft", legend=c("Co2-Original", "Co2-Predicted"),
+        col=c("red", "blue"), lty=1,cex=0.8)
+
+
+
+# Get the weights and calculate feature importance
+np <- import("numpy")
+weights <- np$abs(keras$get_weights(model)[[1]])
+feature_importance <- colSums(weights)
+names(feature_importance) <- colnames(x)
+
+# Print the feature importances
+print(feature_importance)
+```
+
+
+
+

@@ -26,7 +26,8 @@ packages <- c(
   "stringr",
   "janitor",
   "reshape2",
-  "ggpubr"
+  "ggpubr",
+  "ggplot2"
 )
 
 # renv::install(packages)
@@ -109,26 +110,17 @@ zzleosyearly2005_2022eu <- ggplot(zeosyearly2005_2022, aes(x=Month,y = Electrici
 zzleosyearly2005_2022eu
 ```
 
-### Trans
+### Transportation
 
 We produced a line graph for the Gross Manufacturing Output in the United States from 2005 to 2021.
 
 Finally we looked at the vehicle usage which is measure in million miles. We normalized the data for uniformity in comparison, as the magnitude of data differ significantly between the different sectors. We found that over the ten year observation period, air travel millage dropped 16%. In the mean time, travel by rail increased 25%, and total highway millage increased 5%. We speculate that this is not related to 911, instead, it is due to the poor customer service provided by airlines, and increased airline fares, as air travel millage peaked in 2007, at a 20% increase from 2001. 
 
-```{r}
-# CODE FOR NORMALIZED PLOTs
-```
-
-
-
------
-
-
 ```{R}
 colnames(ztransyearly1990_2015)[1] <- "Year"
 z2transyearly1990_2015 <- ztransyearly1990_2015 %>%
   pivot_longer(!Year, names_to = "type", values_to = "value")%>%
-  filter(type %in% c("Air carrier, domestic, all services","Highway, total","Commuter rail")) %>%
+  filter(type %in% c("air_carrier_domestic_all_services","highway_total","commuter_rail")) %>%
   mutate(Year = as.numeric(Year), value)
 zztransyearly2005_2015 <- z2transyearly1990_2015%>%
   filter(Year>=2005)%>%
@@ -146,10 +138,12 @@ zztransair <- zztransyearly2005_2015 %>%
   filter(type=="Air carrier, domestic, all services")
 zztransrail <- zztransyearly2005_2015 %>%
   filter(type=="Commuter rail")
-#ggplot(zztranshighway, aes(x=Year, y=value, group=1))+geom_line(color="blue")+theme_bw()
-#ggplot(zztransair, aes(x=Year, y=value, group=1))+geom_line(color="red")+theme_bw()
-#ggplot(zztransrail, aes(x=Year, y=value, group=1))+geom_line(color="green")+theme_bw()
 ```
+
+
+
+-----
+
 
 
 

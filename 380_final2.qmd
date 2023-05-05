@@ -424,3 +424,23 @@ xgb_imp$Importance
 ### XGBoost Results
 
 Unfortunately, our second model does a poor job predicting our data, as seen in the time series line graph above. We believe this is due to the model being trained on such a small dataset, as this type of machine learning is best suited for huge datasets with many more data points than we had here. Regardless, it indicates that transportation is our most important predictor, followed by GDP.
+
+
+### Conclusion
+
+Removing electricity use had the greatest impact on the performance of our first model. Transportation had the second most. On our second model transportation was the most important predictor.
+
+Because of the consistent prevalence of transportation we consider it to be the most important feature when predicting climate change. This is also backed up by a similar studies from the Environmental Protection Agency in 2021 that also found transportation to be the largest contributor to the united states carbon output.
+
+This means that according to our project climate policies should be focusing on limiting wasteful electricity use and reconsidering our car based infrastructure as our default way of transportation. Which we can already see happening as concepts like 15 minute cities and walkable cities become more popular online as more people begin to search for alternative modes of transport.
+
+
+### Limitations
+We did this project with 4 different datasets, some only started at 2005 and others ended at 2015, meaning that we only have about a decade’s worth of usable data. We also had a somewhat low number of predictors, each pulled from a different dataset. And so because of this we cannot draw full causal conclusions, only correlations.
+
+Dealing with timeseries data also proved challenging. With the transportation dataset ending at 2015, our information is not fully up to date, leaving out recent events that may sway data such as the Coronavirus pandemic which would have definietly provided greater insights into how our behaviour and consumptions habits changed during the pandemic. Also because we chose to use time series data the initial data cleaning was time consuming and there was always the chance of noise in the data which neural networks have a hard time accounting for.
+
+
+In regards to our analysis, we found a method for k-fold cross validation with time series data that we wanted to use. However, because our data wasn’t large enough we didn’t pursue that method.
+
+Overall, our greatest limitation was the size our of data. Had it been larger we could have pursued other methods that might have yielded other results. This issue was also made worse by the fact we were using time series data. Some of our data sets were measured by day, month, quarter, and year. Meaning that me had to use the largest measure in order to normalize our data. This led to our data becoming even smaller.

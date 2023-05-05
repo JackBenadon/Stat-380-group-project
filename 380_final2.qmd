@@ -13,7 +13,7 @@ output: pdf_document
 
 ## Front Matter
 
-```{r}
+```{R, message=FALSE, warning=FALSE, results='hide'}
 packages <- c(
   "dplyr", 
   "readr", 
@@ -96,7 +96,7 @@ ztransyearly1990_2015 <- tran %>%
   select(-c(2,23))
 ```
 
------
+
 ## Explotory Data Analysis
 
 ### OWID
@@ -188,13 +188,15 @@ data$Air.carrier..domestic..all.services <- as.numeric(sub(",","",data$Air.carri
 data$Highway..total <- as.numeric(data$Highway..total)
 #making sure the transport data is only one column
 data$transport <- data$Air.carrier..domestic..all.services + data$Commuter.rail + data$Highway..total
+#duplicating data object so both models function properly
+data2 <- data
 ``` 
 
 
 ## Modelling part 1:
 Finally, we took two approaches to modelling. Firstly, we constructed a two layer neural networ, consisting of 64 nodes in first layer and 32 nodes in the second layer, with MSE loss and ReLU activations. Ultimately, our goal was to use this model to identify which variables were most important for our analysis. We first built the full model with all four predictors to see how it performed. However, we then repeatedly trained the model excluding one predictor at a time then saw how each models loss was affected. Our idea was that the model in which loss was most impacted would indicate that the given excluded variable was most important to predicting CO2
 
-```{r, include = FALSE}
+```{r}
 #Cleaning for model 1
 
 
@@ -303,16 +305,17 @@ Looking at the loss performance for each of our models, we see that the model th
 
 
 
+## Modeling Part 2
 
-
+The second model we used was an Extreme Gradient Boost model, also known as XGBoost. This model works by first generating a layer of decision tree models and averaging them out to minimize the variance associated with the decision tree model type. After that, it attempts to make a new layer of decision trees that tries to account for as much of the previous layer's error as possible. It continues to do this process, using a loss function and gradient descent. We chose this model because it fit our particular problem pretty well: it can account for time series data relatively easily, it is one of the models that is very popular in real data science currently, it wasn't too hard to work with, and it has built-in feature importance generation, allowing us to easily compare which predictors had the greatest effect on the model.
 
 ```{r}
 library(xgboost)
 
-data <- as.data.frame(data)
+data2 <- as.data.frame(data2)
 
-train <- data[1:9,]
-test <- data[10:11,]
+train <- data2[1:9,]
+test <- data2[10:11,]
 
 train_Dmatrix <- train %>% 
                  dplyr::select(transport,gdp,GOMA,ElectricityEndUseTotal) %>% 
@@ -418,5 +421,6 @@ xgb.ggplot.importance(xgb_imp,n_clusters = c(2))+
 xgb_imp$Importance
 ```
 
+### XGBoost Results
 
-
+Unfortunately, our second model does a poor job predicting our data, as seen in the time series line graph above. We believe this is due to the model being trained on such a small dataset, as this type of machine learning is best suited for huge datasets with many more data points than we had here. Regardless, it indicates that transportation is our most important predictor, followed by GDP.
